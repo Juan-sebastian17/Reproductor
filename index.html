@@ -1,0 +1,1855 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071b3a">
+  <title>Ahora en el tocadiscos</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: #071b3a;
+      color: #f7f4e9;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --gold: #f4c744;
+      --muted: #aab4c7;
+      --panel: rgba(12, 24, 49, .72);
+      --line: rgba(184, 194, 214, .18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(55, 139, 195, .24), transparent 28rem),
+        radial-gradient(circle at 82% 82%, rgba(121, 95, 149, .18), transparent 34rem),
+        linear-gradient(145deg, #0c2d5a 0%, #09172f 58%, #071126 100%);
+      background-attachment: fixed;
+    }
+
+    button { font: inherit; }
+
+    .page {
+      width: min(100% - 32px, 1160px);
+      margin: 0 auto;
+      padding: 22px 0 42px;
+    }
+
+    .studio {
+      display: grid;
+      grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
+      gap: clamp(22px, 3vw, 40px);
+      align-items: start;
+    }
+
+    .player-column { grid-column: 2; grid-row: 1; min-width: 0; }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 5px 20px;
+      color: #d3dae6;
+      font-size: .81rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .on-air { display: flex; align-items: center; gap: 10px; }
+    .on-air::before {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 14px #f4c74499;
+      content: "";
+    }
+
+    .equalizer { display: flex; height: 30px; align-items: end; gap: 4px; }
+    .equalizer i {
+      display: block;
+      width: 7px;
+      height: 12px;
+      border-radius: 5px;
+      background: var(--gold);
+    }
+    .equalizer i:nth-child(2) { height: 19px; }
+    .equalizer i:nth-child(3) { height: 27px; }
+    .equalizer i:nth-child(4) { height: 18px; }
+    .equalizer i:nth-child(5) { height: 10px; }
+
+    .turntable {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(17px, 4vw, 29px);
+      border: 1px solid rgba(205, 211, 223, .22);
+      border-radius: 27px;
+      background:
+        repeating-linear-gradient(169deg, #ffffff08 0 2px, transparent 2px 9px),
+        linear-gradient(145deg, #24232b, #10131d 50%, #27252a);
+      box-shadow: 0 24px 55px rgba(0, 0, 0, .32), inset 0 1px 1px rgba(255, 255, 255, .16);
+    }
+
+    .platter {
+      position: relative;
+      display: grid;
+      width: min(100%, 490px);
+      aspect-ratio: 1;
+      margin: auto;
+      place-items: center;
+      border: 7px dotted #b1b1a9;
+      border-radius: 50%;
+      background: radial-gradient(circle, #090a0d 0 69%, #3b3b40 69.5% 71%, #17181d 71.5%);
+      box-shadow: 0 0 0 5px #090a0d, 0 0 0 7px #65636a, 0 11px 22px #000a;
+    }
+
+    .record {
+      position: relative;
+      display: grid;
+      width: 88%;
+      aspect-ratio: 1;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle, #ffffff12 0 1px, #0000 2px 5px),
+        radial-gradient(circle at 30% 25%, #45434a 0, #18191e 37%, #090a0d 75%);
+      box-shadow: inset 0 0 26px #000, 0 0 10px #000;
+      animation: spin 3s linear infinite;
+      animation-play-state: paused;
+    }
+
+    .playing .record { animation-play-state: running; }
+
+    .label {
+      position: relative;
+      display: grid;
+      width: 43%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      place-items: center;
+      border: 1px solid #f6db83;
+      border-radius: 50%;
+      background:
+        radial-gradient(ellipse at 25% 25%, #ffe67b 0 18%, transparent 19%),
+        radial-gradient(ellipse at 72% 76%, #e88750 0 12%, transparent 13%),
+        linear-gradient(135deg, #f8d766 0 39%, #1876a8 40% 100%);
+      color: #fff7da;
+      text-align: center;
+      transform: rotate(-13deg);
+    }
+
+    .artwork-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .label::before, .cover::before {
+      position: absolute;
+      z-index: 1;
+      inset: 12%;
+      border: 1px solid #ffffff8c;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .label-copy {
+      z-index: 1;
+      max-width: 80%;
+      font-size: clamp(.58rem, 2vw, .9rem);
+      font-weight: 900;
+      line-height: 1.05;
+      text-shadow: 1px 2px 3px #16213c;
+      text-transform: uppercase;
+    }
+
+    .label.has-artwork .label-copy,
+    .cover.has-artwork .cover-title { display: none; }
+
+    .spindle {
+      position: absolute;
+      z-index: 2;
+      width: 5%;
+      aspect-ratio: 1;
+      border: 4px solid #17171b;
+      border-radius: 50%;
+      background: #f4e6bb;
+    }
+
+    .tonearm {
+      position: absolute;
+      z-index: 3;
+      top: -3%;
+      right: -5%;
+      width: 36%;
+      aspect-ratio: 220 / 195;
+      pointer-events: none;
+      filter: drop-shadow(0 8px 8px rgba(0, 0, 0, .48));
+      transform: rotate(var(--tonearm-park-angle, -26deg));
+      transform-origin: 85.5% 17.5%;
+      transition: transform 1.45s cubic-bezier(.22, .72, .24, 1);
+    }
+
+    .tonearm svg { width: 100%; height: 100%; overflow: visible; }
+
+    .playing .tonearm {
+      transform: rotate(var(--tonearm-play-angle, 2deg));
+    }
+
+    .tonearm .needle-tip {
+      transform-origin: 52px 164px;
+      transition: opacity .25s ease;
+    }
+
+    .playing .tonearm .needle-tip {
+      animation: needle-vibration .085s linear infinite alternate;
+    }
+
+    @keyframes needle-vibration {
+      from { transform: translateX(-.18px) rotate(-.35deg); }
+      to { transform: translateX(.18px) rotate(.35deg); }
+    }
+
+    .deck-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .play-button, .speed-button, .transport-button, .shuffle-button, .load-button {
+      min-height: 43px;
+      border: 1px solid rgba(202, 192, 169, .34);
+      border-radius: 11px;
+      background: rgba(20, 20, 25, .88);
+      color: #fff;
+      cursor: pointer;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+
+    .play-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      font-size: .82rem;
+      letter-spacing: .07em;
+    }
+
+    .play-button:hover, .transport-button:hover, .speed-button:hover,
+    .shuffle-button:hover, .load-button:hover {
+      border-color: var(--gold);
+      background: #27242a;
+      transform: translateY(-1px);
+    }
+
+    .play-button:active, .transport-button:active, .speed-button:active,
+    .shuffle-button:active, .load-button:active {
+      transform: translateY(0);
+    }
+
+    button:focus-visible, .load-button:focus-within, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    .transport-button, .shuffle-button {
+      padding: 0 12px;
+      font-size: .82rem;
+    }
+
+    .shuffle-button[aria-pressed="true"] {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .play-button:hover, .speed-button:hover, .transport-button:hover,
+    .shuffle-button:hover, .load-button:hover { border-color: var(--gold); }
+    .play-dot { width: 11px; height: 11px; border-radius: 50%; background: #fa794e; }
+
+    .speed-button {
+      min-width: 58px;
+      padding: 0 9px;
+      color: #d4d0c6;
+      font-size: .82rem;
+    }
+
+    .helper {
+      flex: 1 1 100%;
+      color: #c3bdaf;
+      font-size: .78rem;
+      text-align: left;
+    }
+
+    .track-panel {
+      display: grid;
+      grid-template-columns: 138px 1fr;
+      gap: 22px;
+      align-items: center;
+      margin-top: 20px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, .14);
+      backdrop-filter: blur(12px);
+    }
+
+    .cover {
+      position: relative;
+      display: grid;
+      aspect-ratio: 1;
+      overflow: hidden;
+      place-items: center;
+      border: 5px solid #f2ebd8;
+      border-radius: 4px;
+      background:
+        radial-gradient(ellipse at 30% 26%, #ffdb70 0 15%, transparent 16%),
+        radial-gradient(ellipse at 62% 35%, #f1a36e 0 22%, transparent 23%),
+        linear-gradient(145deg, #0c78a9 0 48%, #f8cf54 49% 70%, #09678c 71%);
+      box-shadow: 5px 9px 18px rgba(0, 0, 0, .38);
+      transform: rotate(2deg);
+    }
+
+    .eyebrow {
+      margin: 0 0 7px !important;
+      color: var(--gold) !important;
+      font-size: .7rem !important;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .cover-title {
+      z-index: 1;
+      padding: 10px;
+      color: white;
+      font-size: 1.08rem;
+      font-weight: 900;
+      line-height: 1;
+      text-align: center;
+      text-shadow: 2px 3px 4px #071b3a;
+      transform: rotate(-8deg);
+    }
+
+    .track-copy h1 {
+      margin: 0 0 7px;
+      color: #f2f0e9;
+      font-size: clamp(1.55rem, 4vw, 2.35rem);
+      font-weight: 900;
+      letter-spacing: .015em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .track-copy p { margin: 6px 0; color: var(--muted); font-size: .9rem; }
+    .track-copy .artist { color: var(--gold); font-size: 1rem; font-weight: 700; }
+
+    .timeline { margin-top: 15px; }
+    .timeline input {
+      width: 100%;
+      height: 4px;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+
+    .timeline input::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(207, 214, 228, .22);
+    }
+
+    .timeline input::-webkit-slider-thumb {
+      width: 13px;
+      height: 13px;
+      margin-top: -4.5px;
+      border: 2px solid #fff4c7;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .38);
+    }
+    .timecodes {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 3px;
+      color: #c5c8d0;
+      font-size: .72rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .upload-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 17px; }
+    .load-button { min-height: 37px; padding: 0 12px; font-size: .78rem; }
+    .file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+    .file-input:focus-visible + .load-button { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .library {
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, .12);
+      backdrop-filter: blur(12px);
+    }
+
+    .library-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .library-heading h2 {
+      margin: 0;
+      font-size: 1.22rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .library-count { color: var(--muted); font-size: .82rem; }
+    .library-list {
+      display: grid;
+      max-height: min(62vh, 680px);
+      gap: 10px;
+      overflow-y: auto;
+      padding: 2px 5px 2px 2px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(244, 199, 68, .6) transparent;
+    }
+
+    .library-list::-webkit-scrollbar { width: 6px; }
+    .library-list::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(244, 199, 68, .6);
+    }
+
+    .shelf-tools {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .shelf-tools select, .shelf-tools input { grid-column: 1 / -1; }
+
+    .shelf-tools select, .shelf-tools input {
+      min-width: 0;
+      min-height: 39px;
+      padding: 0 10px;
+      border: 1px solid #8792a766;
+      border-radius: 9px;
+      background: #101d35;
+      color: #f7f4e9;
+      font: inherit;
+      font-size: .82rem;
+    }
+
+    .shelf-tools input { grid-column: 1 / -1; }
+
+    .shelf-tools button {
+      min-height: 39px;
+      padding: 0 11px;
+      border: 1px solid #958b79;
+      border-radius: 9px;
+      background: #19171a;
+      color: #fff;
+      cursor: pointer;
+      font-size: .78rem;
+    }
+
+    .shelf-tools button:hover { border-color: var(--gold); }
+
+    .library-empty {
+      margin: 0;
+      padding: 21px 16px;
+      border: 1px dashed #8792a766;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: .88rem;
+      text-align: center;
+    }
+
+    .library-track {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) auto;
+      gap: 13px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid rgba(168, 181, 205, .16);
+      border-radius: 13px;
+      background: rgba(16, 29, 53, .72);
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    .library-track:hover {
+      border-color: rgba(244, 199, 68, .5);
+      background: rgba(22, 38, 67, .92);
+      transform: translateX(2px);
+    }
+
+    .library-cover {
+      position: relative;
+      width: 58px;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 7px;
+      background: linear-gradient(145deg, #1275a1 0 48%, #f4c744 49% 70%, #09678c 71%);
+    }
+
+    .library-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .library-cover span { display: grid; height: 100%; place-items: center; color: #fff; font-size: 1.35rem; font-weight: 800; }
+    .library-info { min-width: 0; }
+    .library-info strong, .library-info span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .library-info strong { font-size: .9rem; }
+    .library-info span { margin-top: 4px; color: var(--muted); font-size: .76rem; }
+
+    .library-play {
+      min-height: 36px;
+      padding: 0 11px;
+      border: 1px solid #958b79;
+      border-radius: 9px;
+      background: #19171a;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .library-play:hover { border-color: var(--gold); }
+
+    .library-actions { display: flex; align-items: center; gap: 6px; }
+    .library-delete {
+      min-height: 36px;
+      padding: 0 9px;
+      border: 1px solid rgba(244, 139, 124, .4);
+      border-radius: 9px;
+      background: rgba(82, 29, 34, .48);
+      color: #ffd2ca;
+      cursor: pointer;
+    }
+
+    .library-delete:hover {
+      border-color: #f48b7c;
+      background: rgba(112, 38, 42, .65);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 800px) {
+      .studio { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+      .player-column { grid-column: 1; grid-row: 1; }
+      .library {
+        grid-column: 1;
+        grid-row: 2;
+        padding: 18px;
+        border-radius: 16px;
+      }
+      .library-list { max-height: 420px; }
+    }
+
+    @media (max-width: 480px) {
+      .page { width: min(100% - 26px, 1160px); padding-top: 20px; }
+      .topline { margin-bottom: 21px; font-size: .67rem; }
+      .track-panel { grid-template-columns: 34% 1fr; gap: 18px; }
+      .cover { border-width: 4px; }
+      .track-copy p { font-size: .78rem; }
+      .helper { max-width: 125px; font-size: .68rem; }
+      .turntable { border-radius: 20px; }
+      .deck-controls { justify-content: center; }
+      .deck-controls .helper {
+        flex-basis: 100%;
+        max-width: none;
+        text-align: center;
+      }
+      .library-track { grid-template-columns: 52px minmax(0, 1fr) auto; gap: 9px; }
+      .library-cover { width: 52px; }
+      .library-actions { flex-direction: column; align-items: stretch; }
+      .library-play, .library-delete { min-height: 32px; padding: 0 7px; font-size: .72rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+      .record { animation-duration: 12s; }
+      .tonearm { transition: none; }
+      .playing .tonearm .needle-tip { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topline">
+      <div class="on-air">Ahora en el tocadiscos</div>
+      <div class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    </header>
+
+    <div class="studio">
+      <div class="player-column">
+        <section class="turntable" id="turntable" aria-label="Reproductor de vinilo">
+          <div class="platter">
+            <div class="record" id="record">
+              <div class="label" id="recordLabel">
+                <img class="artwork-image" id="recordArtwork" alt="" hidden>
+                <span class="label-copy">Lado A<br>Sonido para quedarse</span>
+              </div>
+              <div class="spindle"></div>
+            </div>
+            <div class="tonearm" aria-hidden="true">
+              <svg viewBox="0 0 220 195" role="presentation">
+                <defs>
+                  <linearGradient id="tonearmTube" x1="0" y1="0" x2="1" y2=".7">
+                    <stop offset="0" stop-color="#f1f4f4"/>
+                    <stop offset=".18" stop-color="#9ea7a9"/>
+                    <stop offset=".5" stop-color="#eef1ed"/>
+                    <stop offset=".72" stop-color="#747d80"/>
+                    <stop offset="1" stop-color="#d6dcda"/>
+                  </linearGradient>
+                  <linearGradient id="tonearmPivot" x1=".2" y1="0" x2=".8" y2="1">
+                    <stop offset="0" stop-color="#dfe4e2"/>
+                    <stop offset=".32" stop-color="#777f82"/>
+                    <stop offset=".72" stop-color="#30373a"/>
+                    <stop offset="1" stop-color="#11171a"/>
+                  </linearGradient>
+                  <filter id="tonearmSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".55"/>
+                  </filter>
+                </defs>
+
+                <circle cx="188" cy="38" r="31" fill="#171c1f" stroke="#727a7c" stroke-width="2"/>
+                <circle cx="188" cy="38" r="24" fill="url(#tonearmPivot)" stroke="#c6ccca" stroke-width="2"/>
+                <circle cx="188" cy="38" r="7" fill="#1a2022" stroke="#d9ddda" stroke-width="2"/>
+
+                <g filter="url(#tonearmSoftShadow)">
+                  <path d="M184 42 C169 43 154 51 143 62 C128 76 116 92 103 108 L56 153"
+                        fill="none" stroke="#1a2022" stroke-width="11" stroke-linecap="round"/>
+                  <path d="M184 38 C168 39 153 47 142 58 C127 72 115 88 102 104 L53 149"
+                        fill="none" stroke="url(#tonearmTube)" stroke-width="7" stroke-linecap="round"/>
+                </g>
+
+                <g transform="translate(44 141) rotate(36)">
+                  <rect x="-10" y="-8" width="35" height="24" rx="5" fill="#171b1d" stroke="#92999a" stroke-width="1.5"/>
+                  <rect x="-7" y="-5" width="24" height="18" rx="3" fill="#343b3d"/>
+                  <rect x="19" y="-3" width="9" height="12" rx="2" fill="#afb6b4"/>
+                </g>
+                <g class="needle-tip">
+                  <path d="M62 158 L67 172" fill="none" stroke="#e8edea" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M67 172 L70 176" fill="none" stroke="#f4c744" stroke-width="2" stroke-linecap="round"/>
+                </g>
+
+                <rect x="181" y="-17" width="14" height="44" rx="7" fill="#15191b" transform="rotate(12 188 5)"/>
+                <rect x="184" y="-12" width="8" height="32" rx="4" fill="#596164" transform="rotate(12 188 5)"/>
+              </svg>
+            </div>
+          </div>
+          <div class="deck-controls">
+            <button class="transport-button" id="previousButton" type="button" aria-label="Canción anterior">|◀</button>
+            <button class="play-button" id="playButton" type="button" aria-pressed="false">
+              <span class="play-dot" aria-hidden="true"></span>
+              <span id="playText">START</span>
+            </button>
+            <button class="transport-button" id="nextButton" type="button" aria-label="Canción siguiente">▶|</button>
+            <button class="shuffle-button" id="shuffleButton" type="button" aria-label="Activar reproducción aleatoria" aria-pressed="false">Aleatorio</button>
+            <button class="speed-button" id="speedButton" type="button" aria-label="Cambiar velocidad del vinilo">33⅓</button>
+            <span class="helper" id="status" role="status">Carga un audio o inicia la vista previa</span>
+          </div>
+        </section>
+
+        <section class="track-panel" aria-label="Información de la canción">
+          <div class="cover" id="cover" aria-label="Portada de la canción">
+            <img class="artwork-image" id="coverArtwork" alt="" hidden>
+            <div class="cover-title">Ritmos<br>de la tarde</div>
+          </div>
+          <div class="track-copy">
+            <p class="eyebrow">Ahora suena</p>
+            <h1 id="trackTitle">Lado A</h1>
+            <p class="artist" id="artistName">Tu colección</p>
+            <p id="trackMeta">Selecciona un archivo de audio para empezar</p>
+            <div class="timeline">
+              <label class="sr-only" for="seek">Posición de reproducción</label>
+              <input id="seek" type="range" min="0" max="100" value="0" aria-label="Posición de reproducción">
+              <div class="timecodes"><span id="elapsed">0:00</span><span id="duration">6:30</span></div>
+            </div>
+            <div class="upload-row">
+              <input class="file-input" id="audioFile" type="file" accept="audio/*" multiple>
+              <label class="load-button" for="audioFile">Añadir canciones</label>
+              <input class="file-input" id="imageFile" type="file" accept="image/*">
+              <label class="load-button" for="imageFile">Elegir portada</label>
+              <button class="load-button" id="migrateLibraryButton" type="button" hidden>Importar colección local</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="library" aria-labelledby="libraryTitle">
+        <div class="library-heading">
+          <h2 id="libraryTitle">Estantería</h2>
+          <span class="library-count" id="libraryCount">0 canciones</span>
+        </div>
+        <div class="shelf-tools">
+          <label class="sr-only" for="shelfSelect">Estantería seleccionada</label>
+          <select id="shelfSelect" aria-label="Estantería seleccionada"></select>
+          <button id="createShelf" type="button">Crear estantería</button>
+          <button id="renameShelf" type="button">Renombrar</button>
+          <label class="sr-only" for="shelfName">Nombre de la estantería</label>
+          <input id="shelfName" type="text" maxlength="60" placeholder="Nombre para crear o renombrar">
+        </div>
+        <div class="library-list" id="libraryList" aria-live="polite">
+          <p class="library-empty">Añade canciones para crear tu estantería.</p>
+        </div>
+      </section>
+    </div>
+
+    <audio id="audio"></audio>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js"></script>
+  <script>
+    const turntable = document.querySelector("#turntable");
+    const playButton = document.querySelector("#playButton");
+    const playText = document.querySelector("#playText");
+    const previousButton = document.querySelector("#previousButton");
+    const nextButton = document.querySelector("#nextButton");
+    const shuffleButton = document.querySelector("#shuffleButton");
+    const speedButton = document.querySelector("#speedButton");
+    const status = document.querySelector("#status");
+    const audio = document.querySelector("#audio");
+    const audioFile = document.querySelector("#audioFile");
+    const imageFile = document.querySelector("#imageFile");
+    const migrateLibraryButton = document.querySelector("#migrateLibraryButton");
+    const libraryList = document.querySelector("#libraryList");
+    const libraryCount = document.querySelector("#libraryCount");
+    const shelfSelect = document.querySelector("#shelfSelect");
+    const shelfName = document.querySelector("#shelfName");
+    const createShelfButton = document.querySelector("#createShelf");
+    const renameShelfButton = document.querySelector("#renameShelf");
+    const cover = document.querySelector("#cover");
+    const coverArtwork = document.querySelector("#coverArtwork");
+    const recordLabel = document.querySelector("#recordLabel");
+    const recordArtwork = document.querySelector("#recordArtwork");
+    const seek = document.querySelector("#seek");
+    const elapsed = document.querySelector("#elapsed");
+    const duration = document.querySelector("#duration");
+    const trackTitle = document.querySelector("#trackTitle");
+    const artistName = document.querySelector("#artistName");
+    const trackMeta = document.querySelector("#trackMeta");
+    let previewing = false;
+    let previewSeconds = 0;
+    let previewTimer;
+    let speed = 33;
+    let audioUrl;
+    let artworkUrl;
+    let currentTrackId = null;
+    let activeShelfId = "default";
+    let shuffleEnabled = false;
+    let playbackHistory = [];
+    let playbackHistoryPosition = -1;
+    let libraryDB;
+    const SUPABASE_BUCKET = "music-library";
+    const DEFAULT_SHELF_ID = "00000000-0000-4000-8000-000000000001";
+    const MAX_CLOUD_FILE_SIZE = 50 * 1024 * 1024;
+    const supabaseConfig = window.VINYL_SUPABASE_CONFIG || {};
+    const cloudEnabled = Boolean(
+      supabaseConfig.url &&
+      supabaseConfig.anonKey &&
+      !supabaseConfig.url.includes("PEGA_AQUI") &&
+      !supabaseConfig.anonKey.includes("PEGA_AQUI")
+    );
+    let cloudClient;
+
+    function detectImageMime(bytes) {
+      if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
+      if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
+      if (bytes.length >= 6 && bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return "image/gif";
+      if (bytes.length >= 12 && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
+      return "application/octet-stream";
+    }
+
+    function extractId3Artwork(bytes) {
+      if (bytes.length < 10 || bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) return null;
+      const version = bytes[3];
+      const tagSize = (bytes[6] << 21) | (bytes[7] << 14) | (bytes[8] << 7) | bytes[9];
+      const tagEnd = Math.min(bytes.length, 10 + tagSize);
+      let offset = 10;
+
+      while (offset + 10 <= tagEnd) {
+        const frameId = String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+        if (!frameId.trim()) break;
+        const frameSize = version === 4
+          ? (bytes[offset + 4] << 21) | (bytes[offset + 5] << 14) | (bytes[offset + 6] << 7) | bytes[offset + 7]
+          : ((bytes[offset + 4] * 0x1000000) + (bytes[offset + 5] << 16) + (bytes[offset + 6] << 8) + bytes[offset + 7]);
+        const bodyStart = offset + 10;
+        const bodyEnd = bodyStart + frameSize;
+        if (frameSize <= 0 || bodyEnd > tagEnd) break;
+
+        if (frameId === "APIC" && frameSize > 4) {
+          const encoding = bytes[bodyStart];
+          let mimeEnd = bodyStart + 1;
+          while (mimeEnd < bodyEnd && bytes[mimeEnd] !== 0) mimeEnd++;
+          const mime = String.fromCharCode(...bytes.subarray(bodyStart + 1, mimeEnd));
+          const typeOffset = mimeEnd + 1;
+          const descriptionStart = typeOffset + 1;
+          let imageStart = descriptionStart;
+          if (encoding === 1 || encoding === 2) {
+            while (imageStart + 1 < bodyEnd && (bytes[imageStart] !== 0 || bytes[imageStart + 1] !== 0)) imageStart += 2;
+            imageStart += 2;
+          } else {
+            while (imageStart < bodyEnd && bytes[imageStart] !== 0) imageStart++;
+            imageStart++;
+          }
+          if (typeOffset < bodyEnd && imageStart < bodyEnd) {
+            const imageBytes = bytes.subarray(imageStart, bodyEnd);
+            return new Blob([imageBytes], { type: mime.startsWith("image/") ? mime : detectImageMime(imageBytes) });
+          }
+        }
+        offset = bodyEnd;
+      }
+      return null;
+    }
+
+    function extractFlacArtwork(bytes) {
+      if (bytes.length < 8 || String.fromCharCode(...bytes.subarray(0, 4)) !== "fLaC") return null;
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      let offset = 4;
+      while (offset + 4 <= bytes.length) {
+        const header = bytes[offset];
+        const blockType = header & 0x7f;
+        const blockSize = (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+        const start = offset + 4;
+        const end = start + blockSize;
+        if (end > bytes.length) return null;
+        if (blockType === 6 && blockSize >= 32) {
+          let cursor = start;
+          const pictureType = view.getUint32(cursor, false);
+          cursor += 4;
+          const mimeLength = view.getUint32(cursor, false);
+          cursor += 4 + mimeLength;
+          if (cursor + 4 > end) return null;
+          const descriptionLength = view.getUint32(cursor, false);
+          cursor += 4 + descriptionLength;
+          if (cursor + 20 > end) return null;
+          cursor += 16;
+          const imageLength = view.getUint32(cursor, false);
+          cursor += 4;
+          if (imageLength > 0 && cursor + imageLength <= end) {
+            const mime = new TextDecoder().decode(bytes.subarray(start + 8, start + 8 + mimeLength));
+            const imageBytes = bytes.subarray(cursor, cursor + imageLength);
+            if (pictureType === 3 || pictureType === 0) {
+              return new Blob([imageBytes], { type: mime.startsWith("image/") ? mime : detectImageMime(imageBytes) });
+            }
+          }
+        }
+        offset = end;
+        if (header & 0x80) break;
+      }
+      return null;
+    }
+
+    async function extractFlacArtworkFromFile(file) {
+      const signature = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+      if (String.fromCharCode(...signature) !== "fLaC") return null;
+      let offset = 4;
+      while (offset + 4 <= file.size) {
+        const header = new Uint8Array(await file.slice(offset, offset + 4).arrayBuffer());
+        const blockType = header[0] & 0x7f;
+        const blockSize = (header[1] << 16) | (header[2] << 8) | header[3];
+        const blockEnd = offset + 4 + blockSize;
+        if (blockEnd > file.size) return null;
+        if (blockType === 6) {
+          const block = new Uint8Array(await file.slice(offset, blockEnd).arrayBuffer());
+          const metadata = new Uint8Array(4 + block.length);
+          metadata.set(signature);
+          metadata.set(block, 4);
+          return extractFlacArtwork(metadata);
+        }
+        offset = blockEnd;
+        if (header[0] & 0x80) break;
+      }
+      return null;
+    }
+
+    function extractMp4Artwork(bytes) {
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const containers = new Set(["moov", "udta", "meta", "ilst", "trak", "mdia", "minf", "stbl", "edts", "dinf", "covr"]);
+      const findCover = (start, end, parentType) => {
+        let offset = start + (parentType === "meta" ? 4 : 0);
+        while (offset + 8 <= end) {
+          let size = view.getUint32(offset, false);
+          const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+          let headerSize = 8;
+          if (size === 1) {
+            if (offset + 16 > end) break;
+            const largeSize = view.getBigUint64(offset + 8, false);
+            if (largeSize > BigInt(Number.MAX_SAFE_INTEGER)) break;
+            size = Number(largeSize);
+            headerSize = 16;
+          } else if (size === 0) {
+            size = end - offset;
+          }
+          if (size < headerSize || offset + size > end) break;
+          const bodyStart = offset + headerSize;
+          const atomEnd = offset + size;
+          if (type === "data" && parentType === "covr" && bodyStart + 8 <= atomEnd) {
+            const format = view.getUint32(bodyStart, false);
+            const imageStart = bodyStart + 8;
+            const imageBytes = bytes.subarray(imageStart, atomEnd);
+            const mime = format === 13 ? "image/jpeg" : format === 14 ? "image/png" : detectImageMime(imageBytes);
+            return new Blob([imageBytes], { type: mime });
+          }
+          if (containers.has(type)) {
+            const found = findCover(bodyStart, atomEnd, type);
+            if (found) return found;
+          }
+          offset = atomEnd;
+        }
+        return null;
+      };
+      return findCover(0, bytes.length, "");
+    }
+
+    async function extractMp4ArtworkFromFile(file) {
+      let offset = 0;
+      while (offset + 8 <= file.size) {
+        const header = new Uint8Array(await file.slice(offset, offset + 16).arrayBuffer());
+        const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
+        let size = view.getUint32(0, false);
+        const type = String.fromCharCode(...header.subarray(4, 8));
+        let headerSize = 8;
+        if (size === 1) {
+          if (header.length < 16) return null;
+          const largeSize = view.getBigUint64(8, false);
+          if (largeSize > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+          size = Number(largeSize);
+          headerSize = 16;
+        } else if (size === 0) {
+          size = file.size - offset;
+        }
+        if (size < headerSize || offset + size > file.size) return null;
+        if (type === "moov") {
+          const bytes = new Uint8Array(await file.slice(offset, offset + size).arrayBuffer());
+          return extractMp4Artwork(bytes);
+        }
+        offset += size;
+      }
+      return null;
+    }
+
+    async function extractEmbeddedArtwork(file) {
+      const isMp3 = file.type === "audio/mpeg" || /\.mp3$/i.test(file.name);
+      const isFlac = file.type === "audio/flac" || file.type === "audio/x-flac" || /\.flac$/i.test(file.name);
+      const isMp4 = file.type === "audio/mp4" || file.type === "audio/m4a" || /\.(m4a|mp4|m4b|m4p)$/i.test(file.name);
+      if (!isMp3 && !isFlac && !isMp4) return null;
+      if (isMp3) {
+        const header = new Uint8Array(await file.slice(0, 10).arrayBuffer());
+        if (header.length < 10 || header[0] !== 0x49 || header[1] !== 0x44 || header[2] !== 0x33) return null;
+        const tagSize = (header[6] << 21) | (header[7] << 14) | (header[8] << 7) | header[9];
+        const bytes = new Uint8Array(await file.slice(0, Math.min(file.size, 10 + tagSize)).arrayBuffer());
+        const artwork = extractId3Artwork(bytes);
+        if (artwork) return artwork;
+      }
+      if (isFlac) {
+        const artwork = await extractFlacArtworkFromFile(file);
+        if (artwork) return artwork;
+      }
+      if (isMp4) return extractMp4ArtworkFromFile(file);
+      return null;
+    }
+
+    function openLibrary() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("vinyl-player-library", 2);
+        request.onupgradeneeded = (event) => {
+          const db = request.result;
+          if (!request.result.objectStoreNames.contains("tracks")) {
+            db.createObjectStore("tracks", { keyPath: "id" });
+          }
+          const shelves = db.objectStoreNames.contains("shelves")
+            ? request.transaction.objectStore("shelves")
+            : db.createObjectStore("shelves", { keyPath: "id" });
+          const defaultShelf = shelves.get("default");
+          defaultShelf.onsuccess = () => {
+            if (!defaultShelf.result) shelves.put({ id: "default", name: "Mi música", addedAt: 0 });
+          };
+          if (event.oldVersion < 2) {
+            const tracks = request.transaction.objectStore("tracks");
+            const cursorRequest = tracks.openCursor();
+            cursorRequest.onsuccess = () => {
+              const cursor = cursorRequest.result;
+              if (!cursor) return;
+              if (!cursor.value.shelfId) cursor.update({ ...cursor.value, shelfId: "default" });
+              cursor.continue();
+            };
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("No se pudo abrir la estantería"));
+      });
+    }
+
+    function storeTrack(track) {
+      return new Promise((resolve, reject) => {
+        const transaction = libraryDB.transaction("tracks", "readwrite");
+        transaction.objectStore("tracks").put(track);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error("No se pudo guardar la canción"));
+        transaction.onabort = () => reject(transaction.error || new Error("Se canceló el guardado de la canción"));
+      });
+    }
+
+    async function getTrack(id) {
+      if (cloudEnabled) {
+        const { data, error } = await cloudClient
+          .from("tracks")
+          .select("id, name, shelf_id, audio_path, artwork_path, audio_mime, created_at")
+          .eq("id", id)
+          .maybeSingle();
+        if (error) throw error;
+        return data ? mapCloudTrack(data) : null;
+      }
+      return new Promise((resolve, reject) => {
+        const request = libraryDB.transaction("tracks").objectStore("tracks").get(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("No se pudo leer la canción"));
+      });
+    }
+
+    async function getTracks() {
+      if (cloudEnabled) {
+        const { data, error } = await cloudClient
+          .from("tracks")
+          .select("id, name, shelf_id, audio_path, artwork_path, audio_mime, created_at")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data.map(mapCloudTrack);
+      }
+      return new Promise((resolve, reject) => {
+        const request = libraryDB.transaction("tracks").objectStore("tracks").getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("No se pudo cargar la estantería"));
+      });
+    }
+
+    async function getShelves() {
+      if (cloudEnabled) {
+        const { data, error } = await cloudClient
+          .from("shelves")
+          .select("id, name, created_at")
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        return data.map((shelf) => ({
+          id: shelf.id,
+          name: shelf.name,
+          addedAt: Date.parse(shelf.created_at)
+        }));
+      }
+      return new Promise((resolve, reject) => {
+        const request = libraryDB.transaction("shelves").objectStore("shelves").getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("No se pudieron cargar las estanterías"));
+      });
+    }
+
+    function mapCloudTrack(row) {
+      const audioUrl = cloudClient.storage.from(SUPABASE_BUCKET).getPublicUrl(row.audio_path).data.publicUrl;
+      const artworkUrl = row.artwork_path
+        ? cloudClient.storage.from(SUPABASE_BUCKET).getPublicUrl(row.artwork_path).data.publicUrl
+        : null;
+      return {
+        id: row.id,
+        name: row.name,
+        shelfId: row.shelf_id,
+        addedAt: Date.parse(row.created_at),
+        audio: new Blob([], { type: row.audio_mime || "application/octet-stream" }),
+        audioUrl,
+        audioMime: row.audio_mime || "application/octet-stream",
+        artwork: null,
+        artworkUrl,
+        audioPath: row.audio_path,
+        artworkPath: row.artwork_path
+      };
+    }
+
+    function fileExtension(file, fallback) {
+      const fileName = typeof file.name === "string" ? file.name : "";
+      const match = fileName.match(/\.([a-z0-9]{1,8})$/i);
+      if (match) return match[1].toLowerCase();
+      const mimeExtension = file.type.split("/")[1];
+      return /^[a-z0-9]{1,8}$/i.test(mimeExtension) ? mimeExtension.toLowerCase() : fallback;
+    }
+
+    function createId() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      const bytes = crypto.getRandomValues(new Uint8Array(16));
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+
+    async function uploadCloudFile(path, file) {
+      if (file.size > MAX_CLOUD_FILE_SIZE) {
+        throw new Error(`${file.name || "El archivo"} supera el límite de 50 MB por archivo`);
+      }
+      const { error } = await cloudClient.storage.from(SUPABASE_BUCKET).upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type || "application/octet-stream",
+        upsert: false
+      });
+      if (error) throw error;
+    }
+
+    async function removeCloudFiles(paths) {
+      const existingPaths = paths.filter(Boolean);
+      if (!existingPaths.length) return;
+      const { error } = await cloudClient.storage.from(SUPABASE_BUCKET).remove(existingPaths);
+      if (error) throw error;
+    }
+
+    async function saveCloudTrack(track) {
+      const audioPath = `${track.id}/audio.${fileExtension(track.audio, "audio")}`;
+      const artworkPath = track.artwork
+        ? `${track.id}/artwork.${fileExtension(track.artwork, "jpg")}`
+        : null;
+      const uploadedPaths = [];
+      try {
+        await uploadCloudFile(audioPath, track.audio);
+        uploadedPaths.push(audioPath);
+        if (track.artwork) {
+          await uploadCloudFile(artworkPath, track.artwork);
+          uploadedPaths.push(artworkPath);
+        }
+        const { error } = await cloudClient.from("tracks").insert({
+          id: track.id,
+          name: track.name,
+          shelf_id: track.shelfId,
+          audio_path: audioPath,
+          artwork_path: artworkPath,
+          audio_mime: track.audio.type || "application/octet-stream"
+        });
+        if (error) throw error;
+      } catch (error) {
+        try {
+          await removeCloudFiles(uploadedPaths);
+        } catch (cleanupError) {
+          console.error("Could not clean up an incomplete cloud upload:", cleanupError);
+        }
+        throw error;
+      }
+      return mapCloudTrack({
+        ...track,
+        shelf_id: track.shelfId,
+        audio_path: audioPath,
+        artwork_path: artworkPath,
+        audio_mime: track.audio.type || "application/octet-stream",
+        created_at: new Date(track.addedAt).toISOString()
+      });
+    }
+
+    async function readLocalTracks(db) {
+      return new Promise((resolve, reject) => {
+        const request = db.transaction("tracks").objectStore("tracks").getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("No se pudieron leer las canciones locales"));
+      });
+    }
+
+    async function importLocalLibrary() {
+      const localDB = await openLibrary();
+      try {
+        const localTracks = await readLocalTracks(localDB);
+        const sharedTracks = await getTracks();
+        const existingIds = new Set(sharedTracks.map((track) => track.id));
+        let importedCount = 0;
+        let skippedCount = 0;
+        const validUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+        for (const localTrack of localTracks) {
+          let id = localTrack.id;
+          if (!validUuid.test(id) || existingIds.has(id)) {
+            if (existingIds.has(id)) {
+              skippedCount++;
+              continue;
+            }
+            id = createId();
+          }
+          await saveCloudTrack({
+            ...localTrack,
+            id,
+            shelfId: activeShelfId
+          });
+          existingIds.add(id);
+          importedCount++;
+          status.textContent = `Importando colección local: ${importedCount} de ${localTracks.length}`;
+        }
+
+        await renderLibrary();
+        status.textContent = importedCount
+          ? `${importedCount} canciones compartidas${skippedCount ? `; ${skippedCount} ya existían` : ""}`
+          : "No hay canciones locales nuevas para importar";
+      } finally {
+        localDB.close();
+      }
+    }
+
+    async function saveCloudArtwork(track, file) {
+      const path = `${track.id}/artwork-${crypto.randomUUID()}.${fileExtension(file, "jpg")}`;
+      await uploadCloudFile(path, file);
+      const { error } = await cloudClient
+        .from("tracks")
+        .update({ artwork_path: path })
+        .eq("id", track.id);
+      if (error) {
+        try {
+          await removeCloudFiles([path]);
+        } catch (cleanupError) {
+          console.error("Could not clean up an incomplete artwork upload:", cleanupError);
+        }
+        throw error;
+      }
+      try {
+        await removeCloudFiles([track.artworkPath]);
+      } catch (cleanupError) {
+        console.error("Could not remove the previous cloud artwork:", cleanupError);
+      }
+      return getTrack(track.id);
+    }
+
+    async function deleteTrack(track) {
+      if (cloudEnabled) {
+        const { data, error } = await cloudClient
+          .from("tracks")
+          .delete()
+          .eq("id", track.id)
+          .select("id");
+        if (error) throw error;
+        if (!data || !data.length) throw new Error("La canción ya no está en la biblioteca compartida");
+        try {
+          await removeCloudFiles([track.audioPath, track.artworkPath]);
+          return false;
+        } catch (cleanupError) {
+          console.error("Could not remove deleted track files from cloud storage:", cleanupError);
+          return true;
+        }
+      }
+      await new Promise((resolve, reject) => {
+        const transaction = libraryDB.transaction("tracks", "readwrite");
+        transaction.objectStore("tracks").delete(track.id);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error("No se pudo quitar la canción"));
+        transaction.onabort = () => reject(transaction.error || new Error("Se canceló la eliminación"));
+      });
+      return false;
+    }
+
+    function setArtwork(track) {
+      const hasArtwork = Boolean(track.artwork || track.artworkUrl);
+      coverArtwork.hidden = !hasArtwork;
+      recordArtwork.hidden = !hasArtwork;
+      cover.classList.toggle("has-artwork", hasArtwork);
+      recordLabel.classList.toggle("has-artwork", hasArtwork);
+      if (artworkUrl && artworkUrl.startsWith("blob:")) URL.revokeObjectURL(artworkUrl);
+      artworkUrl = track.artworkUrl || (track.artwork ? URL.createObjectURL(track.artwork) : null);
+      if (artworkUrl) {
+        coverArtwork.src = artworkUrl;
+        recordArtwork.src = artworkUrl;
+        coverArtwork.alt = `Portada: ${track.name}`;
+      } else {
+        coverArtwork.removeAttribute("src");
+        recordArtwork.removeAttribute("src");
+      }
+    }
+
+    async function selectTrack(track, autoplay, historyAction = "reset") {
+      stopPreview();
+      audio.pause();
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      audioUrl = track.audioUrl ? null : URL.createObjectURL(track.audio);
+      audio.src = track.audioUrl || audioUrl;
+      currentTrackId = track.id;
+      if (historyAction === "reset") {
+        playbackHistory = [track.id];
+        playbackHistoryPosition = 0;
+      } else if (historyAction === "push") {
+        playbackHistory = playbackHistory.slice(0, playbackHistoryPosition + 1);
+        playbackHistory.push(track.id);
+        playbackHistoryPosition = playbackHistory.length - 1;
+      }
+      trackTitle.textContent = track.name;
+      artistName.textContent = cloudEnabled ? "Biblioteca compartida" : "Tu estantería";
+      trackMeta.textContent = cloudEnabled ? "Compartida en la nube" : "Guardada en este navegador";
+      elapsed.textContent = "0:00";
+      duration.textContent = "0:00";
+      seek.value = "0";
+      setTonearmPosition(0);
+      setArtwork(track);
+      audio.load();
+      status.textContent = "Canción lista";
+      if (autoplay) {
+        try {
+          await audio.play();
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            status.textContent = "No se pudo reproducir esta canción";
+            console.error("Audio playback failed:", error);
+          }
+        }
+      }
+    }
+
+    async function moveTrack(direction) {
+      const tracks = await getActiveShelfTracks();
+      if (!tracks.length) return false;
+
+      const hasHistoryTrack = (position) => {
+        const trackId = playbackHistory[position];
+        return tracks.some((track) => track.id === trackId);
+      };
+
+      if (direction < 0 && playbackHistoryPosition > 0 && hasHistoryTrack(playbackHistoryPosition - 1)) {
+        playbackHistoryPosition--;
+        const previous = tracks.find((track) => track.id === playbackHistory[playbackHistoryPosition]);
+        await selectTrack(previous, true, "move");
+        return true;
+      }
+
+      if (direction > 0 && playbackHistoryPosition < playbackHistory.length - 1
+        && hasHistoryTrack(playbackHistoryPosition + 1)) {
+        playbackHistoryPosition++;
+        const nextInHistory = tracks.find((track) => track.id === playbackHistory[playbackHistoryPosition]);
+        await selectTrack(nextInHistory, true, "move");
+        return true;
+      }
+
+      const currentIndex = tracks.findIndex((track) => track.id === currentTrackId);
+      let nextIndex;
+      if (direction > 0 && shuffleEnabled && tracks.length > 1) {
+        const choices = tracks.filter((track) => track.id !== currentTrackId);
+        nextIndex = tracks.indexOf(choices[Math.floor(Math.random() * choices.length)]);
+      } else if (currentIndex < 0) {
+        nextIndex = direction > 0 ? 0 : tracks.length - 1;
+      } else {
+        nextIndex = currentIndex + direction;
+      }
+
+      if (nextIndex < 0 || nextIndex >= tracks.length) return false;
+      await selectTrack(tracks[nextIndex], true, "push");
+      return true;
+    }
+
+    async function getActiveShelfTracks() {
+      const allTracks = await getTracks();
+      return allTracks
+        .filter((track) => track.shelfId === activeShelfId)
+        .sort((a, b) => b.addedAt - a.addedAt);
+    }
+
+    async function renderLibrary() {
+      const tracks = await getActiveShelfTracks();
+      libraryCount.textContent = `${tracks.length} ${tracks.length === 1 ? "canción" : "canciones"}`;
+      libraryList.replaceChildren();
+      if (!tracks.length) {
+        const empty = document.createElement("p");
+        empty.className = "library-empty";
+        empty.textContent = "Añade canciones para crear tu estantería.";
+        libraryList.append(empty);
+        return;
+      }
+
+      for (const track of tracks) {
+        const row = document.createElement("article");
+        row.className = "library-track";
+        const artwork = document.createElement("div");
+        artwork.className = "library-cover";
+        if (track.artwork || track.artworkUrl) {
+          const image = document.createElement("img");
+          const objectUrl = track.artworkUrl ? null : URL.createObjectURL(track.artwork);
+          image.src = track.artworkUrl || objectUrl;
+          image.alt = "";
+          if (objectUrl) {
+            image.addEventListener("load", () => URL.revokeObjectURL(objectUrl), { once: true });
+            image.addEventListener("error", () => URL.revokeObjectURL(objectUrl), { once: true });
+          }
+          artwork.append(image);
+        } else {
+          const initial = document.createElement("span");
+          initial.textContent = track.name.slice(0, 1).toUpperCase();
+          artwork.append(initial);
+        }
+
+        const info = document.createElement("div");
+        info.className = "library-info";
+        const name = document.createElement("strong");
+        name.textContent = track.name;
+        const detail = document.createElement("span");
+        detail.textContent = track.audioMime || track.audio.type || "Archivo de audio";
+        info.append(name, detail);
+
+        const play = document.createElement("button");
+        play.className = "library-play";
+        play.type = "button";
+        play.textContent = "Reproducir";
+        play.setAttribute("aria-label", `Reproducir ${track.name}`);
+        play.addEventListener("click", async () => {
+          try {
+            await selectTrack(track, true);
+          } catch (error) {
+            status.textContent = "No se pudo abrir esta canción";
+            console.error("Could not load library track:", error);
+          }
+        });
+        const remove = document.createElement("button");
+        remove.className = "library-delete";
+        remove.type = "button";
+        remove.textContent = "Quitar";
+        remove.setAttribute("aria-label", `Quitar ${track.name} de la biblioteca`);
+        remove.addEventListener("click", async () => {
+          if (!window.confirm(`¿Quitar “${track.name}” de la biblioteca compartida?`)) return;
+          try {
+            const filesNeedCleanup = await deleteTrack(track);
+            if (currentTrackId === track.id) {
+              audio.pause();
+              audio.removeAttribute("src");
+              audio.load();
+              if (audioUrl) URL.revokeObjectURL(audioUrl);
+              audioUrl = null;
+              currentTrackId = null;
+              playbackHistory = [];
+              playbackHistoryPosition = -1;
+              trackTitle.textContent = "Lado A";
+              artistName.textContent = "Tu colección";
+              trackMeta.textContent = "Selecciona un archivo de audio para empezar";
+              elapsed.textContent = "0:00";
+              duration.textContent = "6:30";
+              seek.value = "0";
+              setArtwork({ name: "", artwork: null });
+              updatePlayState(false);
+            }
+            await renderLibrary();
+            status.textContent = filesNeedCleanup
+              ? "Canción quitada; no se pudieron limpiar todos sus archivos en la nube"
+              : "Canción quitada de la biblioteca compartida";
+          } catch (error) {
+            status.textContent = "No se pudo quitar la canción compartida";
+            console.error("Could not remove library track:", error);
+          }
+        });
+        const actions = document.createElement("div");
+        actions.className = "library-actions";
+        actions.append(play, remove);
+        row.append(artwork, info, actions);
+        libraryList.append(row);
+      }
+    }
+
+    async function renderShelves() {
+      const shelves = (await getShelves()).sort((a, b) => a.addedAt - b.addedAt);
+      if (!shelves.some((shelf) => shelf.id === activeShelfId)) activeShelfId = shelves[0].id;
+      shelfSelect.replaceChildren();
+      for (const shelf of shelves) {
+        const option = document.createElement("option");
+        option.value = shelf.id;
+        option.textContent = shelf.name;
+        shelfSelect.append(option);
+      }
+      shelfSelect.value = activeShelfId;
+    }
+
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds)) return "0:00";
+      const minutes = Math.floor(seconds / 60);
+      const remaining = Math.floor(seconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${remaining}`;
+    }
+
+    function setTonearmPosition(progress = 0) {
+      const boundedProgress = Math.max(0, Math.min(1, progress));
+      const playingAngle = -18 + boundedProgress * 11;
+      turntable.style.setProperty("--tonearm-park-angle", "-34deg");
+      turntable.style.setProperty("--tonearm-play-angle", `${playingAngle.toFixed(2)}deg`);
+    }
+
+    function updatePlayState(isPlaying) {
+      turntable.classList.toggle("playing", isPlaying);
+      playButton.setAttribute("aria-pressed", String(isPlaying));
+      playText.textContent = isPlaying ? "PAUSA" : "START";
+    }
+
+    function stopPreview() {
+      clearInterval(previewTimer);
+      previewing = false;
+      updatePlayState(false);
+    }
+
+    playButton.addEventListener("click", async () => {
+      if (audio.src) {
+        if (audio.paused) {
+          try {
+            await audio.play();
+            status.textContent = "Reproduciendo";
+          } catch (error) {
+            if (error.name !== "AbortError") {
+              status.textContent = "No se pudo reproducir este archivo";
+              console.error("Audio playback failed:", error);
+            }
+          }
+        } else {
+          audio.pause();
+        }
+        return;
+      }
+
+      if (previewing) {
+        stopPreview();
+        status.textContent = "Vista previa pausada";
+        return;
+      }
+
+      previewing = true;
+      updatePlayState(true);
+      status.textContent = "Vista previa visual";
+      previewTimer = setInterval(() => {
+        previewSeconds += 1;
+        if (previewSeconds >= 390) {
+          previewSeconds = 390;
+          elapsed.textContent = formatTime(previewSeconds);
+          seek.value = "100";
+          setTonearmPosition(1);
+          stopPreview();
+          status.textContent = "Vista previa finalizada";
+          return;
+        }
+        elapsed.textContent = formatTime(previewSeconds);
+        seek.value = String(previewSeconds / 390 * 100);
+        setTonearmPosition(previewSeconds / 390);
+      }, 1000);
+    });
+
+    speedButton.addEventListener("click", () => {
+      speed = speed === 33 ? 45 : 33;
+      speedButton.textContent = speed === 33 ? "33⅓" : "45";
+      document.querySelector("#record").style.animationDuration = speed === 33 ? "3s" : "2.2s";
+    });
+
+    audioFile.addEventListener("change", () => {
+      const files = Array.from(audioFile.files || []);
+      if (!files.length) return;
+      (async () => {
+        try {
+          let firstTrack;
+          for (const file of files) {
+            if (!file.type.startsWith("audio/")) continue;
+            const artwork = await extractEmbeddedArtwork(file);
+            const localTrack = {
+              id: createId(),
+              name: file.name.replace(/\.[^.]+$/, "") || "Pista de audio",
+              audio: file,
+              artwork,
+              addedAt: Date.now(),
+              shelfId: activeShelfId
+            };
+            const track = cloudEnabled ? await saveCloudTrack(localTrack) : localTrack;
+            if (!cloudEnabled) await storeTrack(track);
+            firstTrack = firstTrack || track;
+          }
+          await renderLibrary();
+          if (firstTrack) await selectTrack(firstTrack, false);
+          status.textContent = firstTrack
+            ? (cloudEnabled
+              ? "Canción añadida a la biblioteca compartida"
+              : (firstTrack.artwork ? "Canción y portada añadidas a la estantería" : "Canción añadida; el archivo no incluye una portada"))
+            : "Selecciona archivos de audio válidos";
+        } catch (error) {
+          status.textContent = cloudEnabled
+            ? (error.message || "No se pudieron subir las canciones a la biblioteca compartida")
+            : "No se pudieron guardar las canciones en este navegador";
+          console.error("Could not save audio to library:", error);
+        } finally {
+          audioFile.value = "";
+        }
+      })();
+    });
+
+    imageFile.addEventListener("change", () => {
+      const file = imageFile.files && imageFile.files[0];
+      if (!file) return;
+      (async () => {
+        try {
+          if (!currentTrackId) {
+            status.textContent = "Añade o selecciona una canción antes de elegir su portada";
+            return;
+          }
+          const track = await getTrack(currentTrackId);
+          if (!track) throw new Error("La canción seleccionada ya no está en la estantería");
+          if (cloudEnabled) {
+            const updatedTrack = await saveCloudArtwork(track, file);
+            setArtwork(updatedTrack);
+          } else {
+            track.artwork = file;
+            await storeTrack(track);
+            setArtwork(track);
+          }
+          await renderLibrary();
+          status.textContent = cloudEnabled
+            ? "Portada guardada en la biblioteca compartida"
+            : "Portada guardada en la estantería";
+        } catch (error) {
+          status.textContent = "No se pudo guardar la portada";
+          console.error("Could not save track artwork:", error);
+        } finally {
+          imageFile.value = "";
+        }
+      })();
+    });
+
+    migrateLibraryButton.addEventListener("click", async () => {
+      if (!window.confirm("Se subirán las canciones guardadas en este navegador a la biblioteca compartida. ¿Continuar?")) return;
+      migrateLibraryButton.disabled = true;
+      try {
+        await importLocalLibrary();
+      } catch (error) {
+        status.textContent = error.message || "No se pudo importar la colección local";
+        console.error("Could not import local library:", error);
+      } finally {
+        migrateLibraryButton.disabled = false;
+      }
+    });
+
+    audio.addEventListener("loadedmetadata", () => {
+      duration.textContent = formatTime(audio.duration);
+    });
+    audio.addEventListener("timeupdate", () => {
+      elapsed.textContent = formatTime(audio.currentTime);
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        const progress = audio.currentTime / audio.duration;
+        seek.value = String(progress * 100);
+        setTonearmPosition(progress);
+      }
+    });
+
+    shelfSelect.addEventListener("change", async () => {
+      activeShelfId = shelfSelect.value;
+      try {
+        await renderLibrary();
+        const tracks = await getActiveShelfTracks();
+        playbackHistory = tracks.some((track) => track.id === currentTrackId) ? [currentTrackId] : [];
+        playbackHistoryPosition = playbackHistory.length - 1;
+      } catch (error) {
+        status.textContent = "No se pudo abrir esta estantería";
+        console.error("Could not select shelf:", error);
+      }
+    });
+
+    previousButton.addEventListener("click", async () => {
+      try {
+        if (!(await moveTrack(-1))) status.textContent = "No hay una canción anterior";
+      } catch (error) {
+        status.textContent = "No se pudo reproducir la canción anterior";
+        console.error("Could not play previous track:", error);
+      }
+    });
+
+    nextButton.addEventListener("click", async () => {
+      try {
+        if (!(await moveTrack(1))) status.textContent = "No hay más canciones en esta estantería";
+      } catch (error) {
+        status.textContent = "No se pudo reproducir la siguiente canción";
+        console.error("Could not play next track:", error);
+      }
+    });
+
+    shuffleButton.addEventListener("click", () => {
+      shuffleEnabled = !shuffleEnabled;
+      shuffleButton.setAttribute("aria-pressed", String(shuffleEnabled));
+      shuffleButton.setAttribute(
+        "aria-label",
+        shuffleEnabled ? "Desactivar reproducción aleatoria" : "Activar reproducción aleatoria"
+      );
+      status.textContent = shuffleEnabled ? "Reproducción aleatoria activada" : "Reproducción aleatoria desactivada";
+    });
+
+    createShelfButton.addEventListener("click", async () => {
+      const name = shelfName.value.trim();
+      if (!name) {
+        shelfName.focus();
+        status.textContent = "Escribe un nombre para la nueva estantería";
+        return;
+      }
+      try {
+        const shelf = {
+          id: createId(),
+          name,
+          addedAt: Date.now()
+        };
+        if (cloudEnabled) {
+          const { error } = await cloudClient.from("shelves").insert({ id: shelf.id, name: shelf.name });
+          if (error) throw error;
+        } else {
+          await new Promise((resolve, reject) => {
+            const transaction = libraryDB.transaction("shelves", "readwrite");
+            transaction.objectStore("shelves").add(shelf);
+            transaction.oncomplete = resolve;
+            transaction.onerror = () => reject(transaction.error || new Error("No se pudo crear la estantería"));
+          });
+        }
+        activeShelfId = shelf.id;
+        shelfName.value = "";
+        await renderShelves();
+        await renderLibrary();
+        status.textContent = `Estantería “${name}” creada`;
+      } catch (error) {
+        status.textContent = "No se pudo crear la estantería";
+        console.error("Could not create shelf:", error);
+      }
+    });
+
+    renameShelfButton.addEventListener("click", async () => {
+      const name = shelfName.value.trim();
+      if (!name) {
+        shelfName.focus();
+        status.textContent = "Escribe el nuevo nombre de esta estantería";
+        return;
+      }
+      try {
+        if (cloudEnabled) {
+          const { data, error } = await cloudClient
+            .from("shelves")
+            .update({ name })
+            .eq("id", activeShelfId)
+            .select("id");
+          if (error) throw error;
+          if (!data || !data.length) throw new Error("No se encontró la estantería seleccionada");
+        } else {
+          const shelf = await new Promise((resolve, reject) => {
+            const request = libraryDB.transaction("shelves").objectStore("shelves").get(activeShelfId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error || new Error("No se pudo leer la estantería"));
+          });
+          if (!shelf) throw new Error("No se encontró la estantería seleccionada");
+          shelf.name = name;
+          await new Promise((resolve, reject) => {
+            const transaction = libraryDB.transaction("shelves", "readwrite");
+            transaction.objectStore("shelves").put(shelf);
+            transaction.oncomplete = resolve;
+            transaction.onerror = () => reject(transaction.error || new Error("No se pudo renombrar la estantería"));
+          });
+        }
+        shelfName.value = "";
+        await renderShelves();
+        status.textContent = `Estantería renombrada a “${name}”`;
+      } catch (error) {
+        status.textContent = "No se pudo cambiar el nombre";
+        console.error("Could not rename shelf:", error);
+      }
+    });
+    audio.addEventListener("play", () => {
+      updatePlayState(true);
+      status.textContent = "Reproduciendo";
+    });
+    audio.addEventListener("pause", () => {
+      updatePlayState(false);
+      if (!audio.ended) status.textContent = "En pausa";
+    });
+    audio.addEventListener("ended", async () => {
+      updatePlayState(false);
+      try {
+        if (!(await moveTrack(1))) status.textContent = "Reproducción finalizada";
+      } catch (error) {
+        status.textContent = "No se pudo cargar la siguiente canción";
+        console.error("Could not play next track:", error);
+      }
+    });
+    audio.addEventListener("error", () => {
+      status.textContent = "No se pudo cargar el archivo de audio";
+    });
+    seek.addEventListener("input", () => {
+      if (audio.src && Number.isFinite(audio.duration)) {
+        const progress = Number(seek.value) / 100;
+        audio.currentTime = progress * audio.duration;
+        setTonearmPosition(progress);
+      } else if (previewing) {
+        const progress = Number(seek.value) / 100;
+        previewSeconds = progress * 390;
+        elapsed.textContent = formatTime(previewSeconds);
+        setTonearmPosition(progress);
+      }
+    });
+
+    async function refreshSharedLibrary() {
+      try {
+        await renderShelves();
+        await renderLibrary();
+      } catch (error) {
+        status.textContent = "No se pudo actualizar la biblioteca compartida";
+        console.error("Could not refresh shared library:", error);
+      }
+    }
+
+    async function initializeLibrary() {
+      if (cloudEnabled) {
+        if (!window.supabase || !window.supabase.createClient) {
+          throw new Error("No se pudo cargar el cliente de Supabase. Revisa tu conexión a internet.");
+        }
+        migrateLibraryButton.hidden = false;
+        cloudClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+        activeShelfId = DEFAULT_SHELF_ID;
+        await renderShelves();
+        await renderLibrary();
+        status.textContent = "Biblioteca compartida conectada";
+        cloudClient
+          .channel("shared-music-library")
+          .on("postgres_changes", { event: "*", schema: "public", table: "tracks" }, refreshSharedLibrary)
+          .on("postgres_changes", { event: "*", schema: "public", table: "shelves" }, refreshSharedLibrary)
+          .subscribe((state) => {
+            if (state === "CHANNEL_ERROR" || state === "TIMED_OUT") {
+              status.textContent = "Biblioteca conectada; actualización en vivo no disponible";
+              console.error("Supabase Realtime subscription failed:", state);
+            }
+          });
+        return;
+      }
+
+      libraryDB = await openLibrary();
+      await renderShelves();
+      await renderLibrary();
+      status.textContent = "Modo local. Configura supabase-config.js para compartir la biblioteca.";
+    }
+
+    initializeLibrary().catch((error) => {
+      libraryCount.textContent = "No disponible";
+      libraryList.replaceChildren();
+      const message = document.createElement("p");
+      message.className = "library-empty";
+      message.textContent = cloudEnabled
+        ? "No se pudo conectar con Supabase. Revisa la configuración y las instrucciones de instalación."
+        : "No se pudo abrir el almacenamiento local de canciones.";
+      libraryList.append(message);
+      status.textContent = cloudEnabled
+        ? "La biblioteca compartida no está disponible"
+        : "La estantería no está disponible en este navegador";
+      console.error("Could not initialize song library:", error);
+    });
+  </script>
+</body>
+</html>
