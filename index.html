@@ -496,7 +496,7 @@
 
     .library-track {
       display: grid;
-      grid-template-columns: 58px minmax(0, 1fr) auto;
+      grid-template-columns: 58px minmax(0, 1fr);
       gap: 13px;
       align-items: center;
       padding: 10px;
@@ -524,8 +524,13 @@
     .library-cover img { width: 100%; height: 100%; object-fit: cover; }
     .library-cover span { display: grid; height: 100%; place-items: center; color: #fff; font-size: 1.35rem; font-weight: 800; }
     .library-info { min-width: 0; }
-    .library-info strong, .library-info span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .library-info strong { font-size: .9rem; }
+    .library-info strong, .library-info span { display: block; }
+    .library-info strong {
+      overflow-wrap: break-word;
+      word-break: normal;
+      font-size: .9rem;
+      line-height: 1.3;
+    }
     .library-info span { margin-top: 4px; color: var(--muted); font-size: .76rem; }
 
     .library-play {
@@ -540,7 +545,13 @@
 
     .library-play:hover { border-color: var(--gold); }
 
-    .library-actions { display: flex; align-items: center; gap: 6px; }
+    .library-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
     .library-delete {
       min-height: 36px;
       padding: 0 9px;
@@ -584,9 +595,9 @@
         max-width: none;
         text-align: center;
       }
-      .library-track { grid-template-columns: 52px minmax(0, 1fr) auto; gap: 9px; }
+      .library-track { grid-template-columns: 52px minmax(0, 1fr); gap: 9px; }
       .library-cover { width: 52px; }
-      .library-actions { flex-direction: column; align-items: stretch; }
+      .library-actions { flex-direction: row; }
       .library-play, .library-delete { min-height: 32px; padding: 0 7px; font-size: .72rem; }
     }
 
@@ -1842,11 +1853,11 @@
       const message = document.createElement("p");
       message.className = "library-empty";
       message.textContent = cloudEnabled
-        ? "No se pudo conectar con Supabase. Revisa la configuración y las instrucciones de instalación."
+        ? `No se pudo conectar con Supabase: ${error.message || "revisa la configuración y los permisos."}`
         : "No se pudo abrir el almacenamiento local de canciones.";
       libraryList.append(message);
       status.textContent = cloudEnabled
-        ? "La biblioteca compartida no está disponible"
+        ? (error.message || "La biblioteca compartida no está disponible")
         : "La estantería no está disponible en este navegador";
       console.error("Could not initialize song library:", error);
     });
